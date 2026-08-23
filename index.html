@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-palette="signal">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nexagon — radar chart studio</title>
+<meta name="description" content="Build, style and export radar charts. Runs entirely in your browser.">
+<meta name="color-scheme" content="dark light">
+<link rel="canonical" href="https://radar.reizu.dev/">
+
+<meta name="theme-color" content="#080B12" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#F2F4F9" media="(prefers-color-scheme: light)">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Nexagon">
+<meta property="og:title" content="Nexagon — radar chart studio">
+<meta property="og:description" content="Build, style and export radar charts. Runs entirely in your browser.">
+<meta property="og:url" content="https://radar.reizu.dev/">
+<meta property="og:image" content="https://radar.reizu.dev/assets/social-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Nexagon, a radar chart studio">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Nexagon — radar chart studio">
+<meta name="twitter:description" content="Build, style and export radar charts. Runs entirely in your browser.">
+<meta name="twitter:image" content="https://radar.reizu.dev/assets/social-card.png">
+
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="alternate icon" href="assets/favicon-32.png" sizes="32x32">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="manifest" href="site.webmanifest">
+<link rel="stylesheet" href="css/styles.css">
+<script>
+  /* Applied before paint so there is no flash of the wrong theme. */
+  (function () {
+    try {
+      var t = localStorage.getItem('nexagon.theme');
+      if (!t) t = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', t);
+      var s = JSON.parse(localStorage.getItem('nexagon.state.v1') || '{}');
+      if (s && s.palette) document.documentElement.setAttribute('data-palette', s.palette);
+    } catch (e) {}
+  })();
+</script>
+</head>
+<body>
+
+<a class="skip" href="#chart-card">Skip to chart</a>
+
+<header class="topbar">
+  <div class="brand">
+    <svg class="brand-mark" viewBox="0 0 64 64" aria-hidden="true">
+      <defs>
+        <linearGradient id="bm" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="var(--c1)"/>
+          <stop offset="0.55" stop-color="var(--c2)"/>
+          <stop offset="1" stop-color="var(--c3)"/>
+        </linearGradient>
+      </defs>
+      <g fill="none" stroke="url(#bm)" stroke-width="1.5" stroke-opacity=".4" stroke-linejoin="round">
+        <polygon points="32,8 52.78,20 52.78,44 32,56 11.22,44 11.22,20"/>
+        <path d="M32 32 L32 8 M32 32 L52.78 20 M32 32 L52.78 44 M32 32 L32 56 M32 32 L11.22 44 M32 32 L11.22 20"/>
+      </g>
+      <polygon points="32,10 44.12,25 48.45,41.5 32,42 14.68,42 18.14,24"
+               fill="url(#bm)" fill-opacity=".45" stroke="url(#bm)" stroke-width="2.5" stroke-linejoin="round"/>
+    </svg>
+    <div class="brand-text">
+      <h1>Nexagon</h1>
+      <p>radar chart studio</p>
+    </div>
+  </div>
+
+  <div class="topbar-actions">
+    <span class="stamp" id="stamp">6 axes · 1 set</span>
+    <button id="theme-toggle" class="icon-btn" type="button" aria-pressed="false" title="Switch theme">
+      <svg class="ico ico-sun" viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="12" cy="12" r="4.6"/>
+        <path d="M12 1.6v3M12 19.4v3M22.4 12h-3M4.6 12h-3M19.4 4.6l-2.1 2.1M6.7 17.3l-2.1 2.1M19.4 19.4l-2.1-2.1M6.7 6.7L4.6 4.6"/>
+      </svg>
+      <svg class="ico ico-moon" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M20.5 14.6A8.8 8.8 0 0 1 9.4 3.5a8.8 8.8 0 1 0 11.1 11.1z"/>
+      </svg>
+      <span class="sr-only">Switch theme</span>
+    </button>
+  </div>
+</header>
+
+<main class="layout">
+
+  <!-- ─────────── controls ─────────── -->
+  <div class="controls">
+
+    <section class="panel">
+      <h2 class="panel-title"><span class="tick">A</span>Axes</h2>
+      <p class="panel-note">Drag the number to reorder. Rename inline, slide to set a value, remove what you don't need. Three minimum.</p>
+
+      <div id="axis-list" class="axis-list"></div>
+
+      <div class="row-actions">
+        <button id="add-axis" class="btn" type="button">Add axis</button>
+        <button id="reset-axes" class="btn btn-quiet" type="button">Reset to default</button>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="field-grid">
+        <label class="field">
+          <span class="field-label">Load a list</span>
+          <input id="upload" type="file" accept=".json,.csv,.txt,.tsv" class="file-input">
+        </label>
+        <div class="field">
+          <span class="field-label">Save this set</span>
+          <div class="row-actions">
+            <button id="save-json" class="btn btn-quiet" type="button">Export .json</button>
+            <button id="save-csv" class="btn btn-quiet" type="button">Export .csv</button>
+          </div>
+        </div>
+      </div>
+      <p class="hint">Accepts JSON, CSV or one label per line. A sample of each sits in <code>samples/</code>.</p>
+      <p class="status" id="upload-status" role="status" aria-live="polite"></p>
+    </section>
+
+    <section class="panel">
+      <h2 class="panel-title"><span class="tick">B</span>Data sets</h2>
+      <p class="panel-note">Overlay up to six sets to compare profiles. Click one to edit its faders, drag its swatch to reorder.</p>
+      <div id="series-list" class="series-list"></div>
+      <div class="row-actions">
+        <button id="add-series" class="btn" type="button">Add set</button>
+        <button id="randomise" class="btn btn-quiet" type="button">Randomise values</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2 class="panel-title"><span class="tick">C</span>Look</h2>
+
+      <span class="field-label">Colour</span>
+      <div id="palette-list" class="palette-list" role="radiogroup" aria-label="Colour palette"></div>
+
+      <div class="field-grid">
+        <label class="field">
+          <span class="field-label">Title</span>
+          <input id="title" class="text-input" type="text" maxlength="60" placeholder="Untitled profile">
+        </label>
+        <label class="field">
+          <span class="field-label">Grid shape</span>
+          <select id="shape" class="select">
+            <option value="polygon">Polygon</option>
+            <option value="circle">Circle</option>
+          </select>
+        </label>
+        <label class="field">
+          <span class="field-label">Rings <output id="levels-out" class="num">5</output></span>
+          <input id="levels" class="range" type="range" min="2" max="10" step="1">
+        </label>
+        <label class="field">
+          <span class="field-label">Scale max <output id="max-out" class="num">100</output></span>
+          <input id="max" class="range" type="range" min="5" max="200" step="5">
+        </label>
+        <label class="field">
+          <span class="field-label">Fill <output id="fill-out" class="num">28%</output></span>
+          <input id="fill" class="range" type="range" min="0" max="70" step="1">
+        </label>
+        <label class="field">
+          <span class="field-label">Line width <output id="stroke-out" class="num">2.5</output></span>
+          <input id="stroke" class="range" type="range" min="1" max="6" step="0.5">
+        </label>
+      </div>
+
+      <div class="notice" id="scale-notice" hidden>
+        <p class="notice-text" id="scale-notice-text"></p>
+        <div class="row-actions">
+          <button id="fit-scale" class="btn" type="button">Raise scale</button>
+          <button id="clamp-scale" class="btn btn-quiet" type="button">Set them to the limit</button>
+        </div>
+      </div>
+
+      <div class="toggle-grid">
+        <label class="toggle"><input id="show-labels" type="checkbox"><span>Axis labels</span></label>
+        <label class="toggle"><input id="show-values" type="checkbox"><span>Value numbers</span></label>
+        <label class="toggle"><input id="show-grid" type="checkbox"><span>Grid</span></label>
+        <label class="toggle"><input id="show-points" type="checkbox"><span>Points</span></label>
+        <label class="toggle"><input id="show-title" type="checkbox"><span>Title</span></label>
+        <label class="toggle"><input id="show-legend" type="checkbox"><span>Legend</span></label>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2 class="panel-title"><span class="tick">D</span>Download</h2>
+
+      <div class="field-grid">
+        <label class="field">
+          <span class="field-label">Format</span>
+          <select id="format" class="select">
+            <option value="image/png">PNG</option>
+            <option value="image/jpeg">JPG</option>
+            <option value="image/webp">WEBP</option>
+            <option value="image/avif">AVIF</option>
+            <option value="svg">SVG (vector)</option>
+          </select>
+        </label>
+        <label class="field">
+          <span class="field-label">Size</span>
+          <select id="size" class="select">
+            <option value="512">512 × 512</option>
+            <option value="800">800 × 800</option>
+            <option value="1024" selected>1024 × 1024</option>
+            <option value="1600">1600 × 1600</option>
+            <option value="2048">2048 × 2048</option>
+            <option value="4096">4096 × 4096</option>
+            <option value="custom">Custom…</option>
+          </select>
+        </label>
+        <label class="field" id="custom-size-field" hidden>
+          <span class="field-label">Custom pixels</span>
+          <input id="custom-size" class="text-input" type="number" min="64" max="8192" step="1" value="1200">
+        </label>
+        <label class="field">
+          <span class="field-label">Background</span>
+          <select id="export-bg" class="select">
+            <option value="theme">Match theme</option>
+            <option value="dark">Dark</option>
+            <option value="light">Light</option>
+            <option value="transparent">Transparent</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="toggle-grid">
+        <label class="toggle"><input id="export-labels" type="checkbox" checked><span>Labels in file</span></label>
+        <label class="toggle"><input id="export-title" type="checkbox" checked><span>Title in file</span></label>
+        <label class="toggle"><input id="export-legend" type="checkbox" checked><span>Legend in file</span></label>
+      </div>
+
+      <div class="row-actions">
+        <button id="download" class="btn btn-primary" type="button">Download chart</button>
+        <button id="copy-png" class="btn btn-quiet" type="button">Copy PNG</button>
+      </div>
+      <p class="status" id="export-status" role="status" aria-live="polite"></p>
+      <p class="hint" id="format-hint"></p>
+    </section>
+
+  </div>
+
+  <!-- ─────────── chart ─────────── -->
+  <div class="stage">
+    <section class="chart-card" id="chart-card">
+      <div class="scope" id="scope" aria-label="Radar chart preview"></div>
+      <footer class="chart-foot">
+        <span id="readout" class="readout">—</span>
+        <span class="dims" id="dims">1024 × 1024 · PNG</span>
+      </footer>
+    </section>
+  </div>
+
+</main>
+
+<footer class="pagefoot">
+  <span>Everything stays on this device. No uploads, no accounts.</span>
+</footer>
+
+<script src="js/chart.js"></script>
+<script src="js/export.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

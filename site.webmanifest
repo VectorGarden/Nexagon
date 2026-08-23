@@ -1,0 +1,16 @@
+{
+  "name": "Nexagon — radar chart studio",
+  "short_name": "Nexagon",
+  "description": "Build, style and export radar charts. Runs entirely in your browser.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#080B12",
+  "theme_color": "#080B12",
+  "icons": [
+    { "src": "assets/icon.svg", "sizes": "any", "type": "image/svg+xml" },
+    { "src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "assets/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

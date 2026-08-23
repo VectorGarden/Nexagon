@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Not found — Nexagon</title>
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="dark light">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<script>
+  (function () {
+    try {
+      var t = localStorage.getItem('nexagon.theme');
+      if (!t) t = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', t);
+    } catch (e) {}
+  })();
+</script>
+<style>
+  :root {
+    --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  html[data-theme="dark"]  { --bg:#080B12; --glow:#101728; --ink:#E9EEF9; --dim:#8A97AF; --line:#1E2637; }
+  html[data-theme="light"] { --bg:#F2F4F9; --glow:#E4E9F5; --ink:#111726; --dim:#5C6880; --line:#DFE4EF; }
+  body {
+    margin: 0; min-height: 100vh; display: grid; place-items: center;
+    font-family: var(--sans); color: var(--ink); text-align: center; padding: 24px;
+    background: radial-gradient(700px 500px at 50% 0%, var(--glow), transparent 60%), var(--bg);
+  }
+  svg { width: 84px; height: 84px; }
+  h1 { font-size: 22px; font-weight: 640; letter-spacing: -0.03em; margin: 20px 0 6px; }
+  p { color: var(--dim); font-size: 14px; margin: 0 0 22px; max-width: 34ch; }
+  .code { font-family: var(--mono); font-size: 11px; letter-spacing: 0.18em; color: var(--dim); }
+  a {
+    display: inline-block; text-decoration: none; color: var(--ink);
+    border: 1px solid var(--line); border-radius: 8px; padding: 10px 16px; font-size: 13.5px;
+  }
+  a:hover { border-color: #4CC9F0; }
+</style>
+</head>
+<body>
+  <main>
+    <svg viewBox="0 0 64 64" aria-hidden="true">
+      <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#7C5CFF"/><stop offset=".55" stop-color="#4CC9F0"/><stop offset="1" stop-color="#38E8B0"/>
+      </linearGradient></defs>
+      <g fill="none" stroke="url(#g)" stroke-width="1.5" stroke-opacity=".35" stroke-linejoin="round">
+        <polygon points="32,8 52.78,20 52.78,44 32,56 11.22,44 11.22,20"/>
+        <path d="M32 32 L32 8 M32 32 L52.78 20 M32 32 L52.78 44 M32 32 L32 56 M32 32 L11.22 44 M32 32 L11.22 20"/>
+      </g>
+      <polygon points="32,26 36,30 34,38 32,36 28,38 30,30"
+               fill="url(#g)" fill-opacity=".45" stroke="url(#g)" stroke-width="2" stroke-linejoin="round"/>
+    </svg>
+    <p class="code">404</p>
+    <h1>Nothing on this axis</h1>
+    <p>That page isn't part of Nexagon. The chart studio is one page, and it's this way.</p>
+    <a href="/">Open the studio</a>
+  </main>
+</body>
+</html>
