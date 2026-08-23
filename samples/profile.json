@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "title": "Team review",
+  "max": 100,
+  "attributes": [
+    "Communication",
+    "Delivery",
+    "Technical depth",
+    "Mentoring",
+    "Ownership",
+    "Product sense"
+  ],
+  "series": [
+    { "name": "Alex",  "values": [72, 84, 91, 58, 77, 65] },
+    { "name": "Priya", "values": [88, 66, 74, 90, 81, 79] }
+  ]
+}

@@ -1,0 +1,6 @@
+Speed
+Power
+Stamina
+Technique
+Vision
+Composure
