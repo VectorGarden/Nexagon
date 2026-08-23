@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Nexagon">
+  <defs>
+    <linearGradient id="nx-grad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7C5CFF"/>
+      <stop offset="0.55" stop-color="#4CC9F0"/>
+      <stop offset="1" stop-color="#38E8B0"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="15" fill="#0B0E17"/>
+  <g fill="none" stroke="url(#nx-grad)" stroke-width="1.25" stroke-opacity="0.38" stroke-linejoin="round">
+    <polygon points="32,8 52.78,20 52.78,44 32,56 11.22,44 11.22,20"/>
+    <polygon points="32,20 42.39,26 42.39,38 32,44 21.61,38 21.61,26"/>
+    <path d="M32 32 L32 8 M32 32 L52.78 20 M32 32 L52.78 44 M32 32 L32 56 M32 32 L11.22 44 M32 32 L11.22 20"/>
+  </g>
+  <polygon points="32,10 44.12,25 48.45,41.5 32,42 14.68,42 18.14,24"
+           fill="url(#nx-grad)" fill-opacity="0.5"
+           stroke="url(#nx-grad)" stroke-width="2" stroke-linejoin="round"/>
+  <g fill="#E8EDF7">
+    <circle cx="32" cy="10" r="1.9"/>
+    <circle cx="44.12" cy="25" r="1.9"/>
+    <circle cx="48.45" cy="41.5" r="1.9"/>
+    <circle cx="32" cy="42" r="1.9"/>
+    <circle cx="14.68" cy="42" r="1.9"/>
+    <circle cx="18.14" cy="24" r="1.9"/>
+  </g>
+</svg>
