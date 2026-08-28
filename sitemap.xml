@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- lastmod is re-stamped at deploy time by .github/workflows/pages.yml from
+     the last commit touching page content. The value below is the fallback. -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://radar.reizu.dev/</loc>
