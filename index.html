@@ -8,8 +8,7 @@
 <meta name="color-scheme" content="dark light">
 <link rel="canonical" href="https://radar.reizu.dev/">
 
-<meta name="theme-color" content="#080B12" media="(prefers-color-scheme: dark)">
-<meta name="theme-color" content="#F2F4F9" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#080B12">
 
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Nexagon">
@@ -37,6 +36,8 @@
       var t = localStorage.getItem('nexagon.theme');
       if (!t) t = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
       document.documentElement.setAttribute('data-theme', t);
+      var m = document.querySelector('meta[name="theme-color"]');
+      if (m) m.setAttribute('content', t === 'light' ? '#F2F4F9' : '#080B12');
       var s = JSON.parse(localStorage.getItem('nexagon.state.v1') || '{}');
       if (s && s.palette) document.documentElement.setAttribute('data-palette', s.palette);
     } catch (e) {}
@@ -256,6 +257,7 @@
 
 <footer class="pagefoot">
   <span>Everything stays on this device. No uploads, no accounts.</span>
+  <button id="reset-all" class="btn btn-quiet" type="button">Start over</button>
 </footer>
 
 <script src="js/chart.js"></script>

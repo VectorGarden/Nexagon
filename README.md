@@ -19,7 +19,6 @@ host at it.
 ├── index.html
 ├── 404.html
 ├── CNAME                    custom domain for GitHub Pages
-├── .nojekyll                serve files as-is, no Jekyll pass
 ├── site.webmanifest
 ├── robots.txt / sitemap.xml
 ├── css/styles.css
@@ -28,12 +27,13 @@ host at it.
 ├── js/app.js                state, persistence, all controls
 ├── assets/                  icons + social card
 ├── samples/                 example files you can load
-└── .github/workflows/pages.yml
+└── .github/workflows/pages.yml   publishes the root on every push to main
 ```
 
 ## Deploying to GitHub Pages
 
-Everything the deploy needs is already in the repository.
+The workflow that publishes the site is in the repository. There is no build
+step — it uploads the root as-is.
 
 **1. Push the files.** They go at the repository root, not inside a folder.
 
@@ -47,9 +47,15 @@ git push -u origin main
 ```
 
 **2. Turn Pages on.** Settings → Pages → Build and deployment → Source →
-**GitHub Actions**. The included workflow publishes the root on every push to
-`main`, with no build step. If you'd rather not use Actions, pick *Deploy from a
-branch* → `main` → `/ (root)` instead and delete `.github/workflows/pages.yml`.
+**GitHub Actions**.
+
+Set this *before* the first push. `deploy-pages` only works once the source is
+GitHub Actions — while it is still on *Deploy from a branch* the job fails at
+the deploy step, even though the branch itself keeps publishing.
+
+Jekyll never runs on this path: the workflow uploads the checkout as a tarball
+and Pages serves it verbatim, so no `.nojekyll` file is needed. (It would be
+needed under *Deploy from a branch*, and only if a path started with `_`.)
 
 **3. Set the custom domain.** Settings → Pages → Custom domain →
 `radar.reizu.dev`. The `CNAME` file already carries that value, so this should
@@ -98,6 +104,9 @@ actually overwrites data. Drop the scale to 40, change your mind, put it back at
 fill opacity, line weight, and independent toggles for labels, value numbers,
 grid, points, title and legend.
 
+**Starting over** — *Start over* in the page footer clears the saved state and
+puts every axis, set and setting back to its default. It asks first.
+
 **Download** — PNG, JPG, WEBP, AVIF or SVG at 512 / 800 / 1024 / 1600 / 2048 /
 4096 px, or a custom size. Background can match the current theme, be forced to
 light or dark, or be transparent. Labels, title and legend each have their own
@@ -117,7 +126,9 @@ a choice is made, the app follows the operating system setting and keeps
 following it live.
 
 The full chart state — axes, values, sets, palette, style and export
-preferences — is persisted and synced the same way.
+preferences — is persisted and synced the same way. Every value is re-checked
+against the range its control can produce when it is read back, so a stale or
+edited storage key falls back to defaults rather than rendering a broken chart.
 
 Storage keys: `nexagon.theme`, `nexagon.state.v1`.
 
@@ -134,7 +145,9 @@ Stamina
 ```
 
 **CSV / TSV** — first column is the axis label. Any further columns become data
-sets, and a text header row is used for their names.
+sets, and a text header row is used for their names. Quoted fields are honoured,
+so a label may contain the separator; the *Export .csv* button quotes on the way
+out, which makes the round trip lossless.
 
 ```csv
 Axis,Alex,Priya

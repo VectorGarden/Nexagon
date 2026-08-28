@@ -167,19 +167,54 @@ var Nexagon = (function () {
     }
 
     /* ---- legend ---- */
+    /* One centred row where it fits; otherwise a balanced second row, and a
+       uniform shrink after that. Anything else runs off the 1000-unit canvas
+       and gets clipped in the export as well as on screen. */
     if (withLegend) {
-      var charW = 12.4, gapItem = 46, box = 20, gapBox = 12;
-      var widths = series.map(function (set) { return box + gapBox + String(set.name).length * charW; });
-      var total = widths.reduce(function (a, b) { return a + b; }, 0) + gapItem * (series.length - 1);
-      var x = cx - total / 2;
-      var y = S - bottom / 2 - 4;
-      out.push('<g font-family="' + monos + '" font-size="22" font-weight="500">');
-      series.forEach(function (set, i) {
-        out.push('<rect x="' + n(x) + '" y="' + n(y - box + 4) + '" width="' + box + '" height="' + box +
-          '" rx="5" fill="' + set.color + '"/>');
-        out.push('<text x="' + n(x + box + gapBox) + '" y="' + n(y) + '" fill="' + dim + '">' +
-          esc(set.name) + '</text>');
-        x += widths[i] + gapItem;
+      var charW = 12.4, gapItem = 46, box = 20, gapBox = 12, lineH = 34;
+      var maxW = S - 88;
+
+      var items = series.map(function (set) {
+        var label = String(set.name);
+        return { name: label, color: set.color, w: box + gapBox + label.length * charW };
+      });
+
+      var rowWidth = function (list) {
+        return list.reduce(function (a, it) { return a + it.w; }, 0) + gapItem * (list.length - 1);
+      };
+
+      var rows;
+      if (items.length < 2 || rowWidth(items) <= maxW) {
+        rows = [items];
+      } else {
+        var splitAt = 1, closest = Infinity;
+        for (var q = 1; q < items.length; q++) {
+          var diff = Math.abs(rowWidth(items.slice(0, q)) - rowWidth(items.slice(q)));
+          if (diff < closest) { closest = diff; splitAt = q; }
+        }
+        rows = [items.slice(0, splitAt), items.slice(splitAt)];
+      }
+
+      var widest = Math.max.apply(null, rows.map(rowWidth));
+      var k = Math.min(1, maxW / widest);
+      var pivotY = S - bottom / 2;
+      var shrink = k < 1
+        ? ' transform="translate(' + n(cx) + ' ' + n(pivotY) + ') scale(' + n(k) +
+          ') translate(' + n(-cx) + ' ' + n(-pivotY) + ')"'
+        : '';
+
+      out.push('<g' + shrink + ' font-family="' + monos + '" font-size="22" font-weight="500">');
+      var y0 = pivotY - 4 - (rows.length - 1) * lineH / 2;
+      rows.forEach(function (row, ri) {
+        var x = cx - rowWidth(row) / 2;
+        var y = y0 + ri * lineH;
+        row.forEach(function (it) {
+          out.push('<rect x="' + n(x) + '" y="' + n(y - box + 4) + '" width="' + box + '" height="' + box +
+            '" rx="5" fill="' + it.color + '"/>');
+          out.push('<text x="' + n(x + box + gapBox) + '" y="' + n(y) + '" fill="' + dim + '">' +
+            esc(it.name) + '</text>');
+          x += it.w + gapItem;
+        });
       });
       out.push('</g>');
     }
