@@ -53,12 +53,11 @@ html[data-palette="ember"]    { --c1:#FF6B35; --c2:#FFC145; --c3:#EF476F; --c4:#
 html[data-palette="tide"]     { --c1:#2E9FFF; --c2:#14B8B8; --c3:#5D7BFF; --c4:#48D597; --c5:#8AB6FF; --c6:#0E7490; }
 html[data-palette="bloom"]    { --c1:#F472B6; --c2:#C084FC; --c3:#FB7185; --c4:#A78BFA; --c5:#FDBA74; --c6:#67E8F9; }
 html[data-palette="moss"]     { --c1:#4ADE80; --c2:#A3E635; --c3:#14B8A6; --c4:#84CC16; --c5:#22C55E; --c6:#CFF67B; }
-html[data-palette="graphite"] { --c1:#9AA7BD; --c2:#6C7A93; --c3:#C6D0E0; --c4:#4A5568; --c5:#E2E8F0; --c6:#818CA0; }
+html[data-palette="graphite"] { --c1:#6C7A93; --c2:#9AA7BD; --c3:#3F4A5F; --c4:#C6D0E0; --c5:#818CA0; --c6:#525E75; }
 
 html { --accent: var(--c2); }
 html[data-palette="ember"]  { --accent: var(--c1); }
 html[data-palette="bloom"]  { --accent: var(--c2); }
-html[data-palette="graphite"] { --accent: var(--c1); }
 
 /* ============================================================ */
 
@@ -485,6 +484,12 @@ html[data-theme="light"] .btn-primary { color: #fff; }
   padding: 18px var(--gutter) 34px;
   font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.1em;
   text-transform: uppercase; color: var(--ink-faint);
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+}
+
+.pagefoot .btn {
+  font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase;
+  padding: 6px 12px; flex: none;
 }
 
 /* ---------- responsive ---------- */

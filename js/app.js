@@ -29,6 +29,8 @@
 
   var DEFAULT_ATTRS = ['Speed', 'Power', 'Stamina', 'Technique', 'Vision', 'Composure'];
   var MAX_SERIES = 6;
+  var MAX_ATTRS = 24;
+  var SLOTS = PALETTES[0].colors.length;
 
   function defaults() {
     return {
@@ -85,12 +87,45 @@
     } catch (e) {}
   }
 
-  /* Keep every series the same length as the axis list. */
+  function clamp(v, lo, hi, fallback) {
+    var x = Number(v);
+    return isFinite(x) ? Math.max(lo, Math.min(hi, x)) : fallback;
+  }
+
+  function oneOf(v, allowed, fallback) {
+    return allowed.indexOf(v) === -1 ? fallback : v;
+  }
+
+  /* Keep every series the same length as the axis list, and every setting
+     inside the range its control can produce. Anything persisted by an older
+     build — or hand-edited in devtools — otherwise renders a dead chart with
+     no way back to a working state from the interface. */
   function normalise() {
+    var d = defaults();
+
+    state.title = String(state.title == null ? d.title : state.title).slice(0, 60);
+    state.max = Math.round(clamp(state.max, 5, 1000, d.max));
+    state.levels = Math.round(clamp(state.levels, 2, 10, d.levels));
+    state.fillOpacity = clamp(state.fillOpacity, 0, 0.7, d.fillOpacity);
+    state.strokeWidth = clamp(state.strokeWidth, 1, 6, d.strokeWidth);
+    state.customSize = Math.round(clamp(state.customSize, 64, 8192, d.customSize));
+    state.shape = oneOf(state.shape, ['polygon', 'circle'], d.shape);
+    state.palette = oneOf(state.palette, PALETTES.map(function (p) { return p.id; }), d.palette);
+    state.format = oneOf(state.format,
+      ['image/png', 'image/jpeg', 'image/webp', 'image/avif', 'svg'], d.format);
+    state.size = oneOf(String(state.size),
+      ['512', '800', '1024', '1600', '2048', '4096', 'custom'], d.size);
+    state.exportBg = oneOf(state.exportBg, ['theme', 'dark', 'light', 'transparent'], d.exportBg);
+    ['showLabels', 'showValues', 'showGrid', 'showPoints', 'showTitle', 'showLegend',
+     'exportLabels', 'exportTitle', 'exportLegend'].forEach(function (k) {
+      state[k] = !!state[k];
+    });
+
     if (!Array.isArray(state.attributes) || state.attributes.length === 0) {
       state.attributes = DEFAULT_ATTRS.slice();
     }
-    state.attributes = state.attributes.map(function (a) { return String(a).slice(0, 40); });
+    state.attributes = state.attributes.slice(0, MAX_ATTRS)
+      .map(function (a) { return String(a).slice(0, 40); });
     if (!Array.isArray(state.series) || !state.series.length) {
       state.series = [{ name: 'Set A', values: [], visible: true, color: 0 }];
     }
@@ -102,7 +137,7 @@
         /* Values are NOT clamped to the scale — lowering the scale must not destroy data. */
         values: vals.map(function (v) { return Math.max(0, Math.min(1000, Number(v) || 0)); }),
         visible: s.visible !== false,
-        color: s.color == null ? i % 6 : (s.color | 0) % 6
+        color: s.color == null ? i % SLOTS : Math.abs(s.color | 0) % SLOTS
       };
     });
     state.active = Math.max(0, Math.min(state.series.length - 1, state.active | 0));
@@ -116,6 +151,8 @@
 
   function applyTheme(theme, persist) {
     document.documentElement.setAttribute('data-theme', theme);
+    var meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', theme === 'light' ? '#F2F4F9' : '#080B12');
     var btn = $('theme-toggle');
     btn.setAttribute('aria-pressed', theme === 'light' ? 'true' : 'false');
     btn.title = theme === 'light' ? 'Switch to dark' : 'Switch to light';
@@ -130,13 +167,13 @@
     return p.colors;
   }
 
-  function seriesColor(set) { return paletteColors()[(set.color | 0) % 6]; }
+  function seriesColor(set) { return paletteColors()[Math.abs(set.color | 0) % SLOTS]; }
 
   /* Lowest palette slot not already taken. */
   function freeColor() {
     var used = state.series.map(function (s) { return s.color; });
-    for (var c = 0; c < 6; c++) if (used.indexOf(c) === -1) return c;
-    return state.series.length % 6;
+    for (var c = 0; c < SLOTS; c++) if (used.indexOf(c) === -1) return c;
+    return state.series.length % SLOTS;
   }
 
   /* ---------- chart ---------- */
@@ -153,7 +190,7 @@
       height: opts.size || 1000,
       title: state.title,
       attributes: state.attributes,
-      series: state.series.map(function (s, i) {
+      series: state.series.map(function (s) {
         return { name: s.name, values: s.values, visible: s.visible, color: seriesColor(s) };
       }),
       max: state.max,
@@ -427,6 +464,7 @@
       list.appendChild(row);
     });
 
+    $('add-axis').disabled = state.attributes.length >= MAX_ATTRS;
     refreshScaleNotice();
     restoreGrip('axis');
   }
@@ -589,15 +627,46 @@
     };
   }
 
+  /* RFC 4180: a quoted field may hold the separator, newlines and "" escapes.
+     Splitting on the bare separator corrupts any label with a comma in it. */
+  function splitDelimited(text, sep) {
+    var rows = [], row = [], cell = '', quoted = false, wasQuoted = false;
+
+    function endCell() {
+      row.push(wasQuoted ? cell : cell.trim());
+      cell = ''; wasQuoted = false;
+    }
+    function endRow() { endCell(); rows.push(row); row = []; }
+
+    for (var i = 0; i < text.length; i++) {
+      var ch = text.charAt(i);
+      if (quoted) {
+        if (ch !== '"') { cell += ch; continue; }
+        if (text.charAt(i + 1) === '"') { cell += '"'; i++; continue; }
+        quoted = false;
+        continue;
+      }
+      if (ch === '"' && cell.trim() === '') { quoted = true; wasQuoted = true; cell = ''; continue; }
+      if (ch === sep) { endCell(); continue; }
+      if (ch === '\r') continue;
+      if (ch === '\n') { endRow(); continue; }
+      cell += ch;
+    }
+    endRow();
+
+    return rows.filter(function (r) {
+      return r.some(function (c) { return c !== ''; });
+    });
+  }
+
   function parseDelimited(text, sep) {
-    var rows = text.split(/\r?\n/).filter(function (r) { return r.trim().length; })
-      .map(function (r) {
-        return r.split(sep).map(function (c) { return c.trim().replace(/^"|"$/g, ''); });
-      });
+    var rows = splitDelimited(text, sep);
     if (!rows.length) throw new Error('That file has no rows.');
 
     var head = rows[0];
-    var headerIsText = head.slice(1).every(function (c) { return c !== '' && isNaN(Number(c)); });
+    /* A single-column file is a plain list — it has no header row to drop. */
+    var headerIsText = head.length > 1 &&
+      head.slice(1).every(function (c) { return c !== '' && isNaN(Number(c)); });
     var body = headerIsText ? rows.slice(1) : rows;
     var setNames = headerIsText ? head.slice(1) : [];
 
@@ -617,7 +686,7 @@
     if (!parsed.attributes || parsed.attributes.length < 3) {
       throw new Error('Need at least three axis names.');
     }
-    state.attributes = parsed.attributes.slice(0, 24).map(String);
+    state.attributes = parsed.attributes.slice(0, MAX_ATTRS).map(String);
     if (parsed.title) state.title = String(parsed.title).slice(0, 60);
     if (parsed.max) state.max = Math.max(5, Math.min(1000, Number(parsed.max)));
     if (parsed.series && parsed.series.length) {
@@ -639,6 +708,12 @@
   }
 
   /* ---------- export ---------- */
+
+  /* Quote anything that would otherwise break the row apart on re-import. */
+  function csvCell(v) {
+    var s = String(v == null ? '' : v);
+    return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  }
 
   function exportSize() {
     return state.size === 'custom'
@@ -795,7 +870,7 @@
     });
 
     $('add-axis').addEventListener('click', function () {
-      if (state.attributes.length >= 24) return;
+      if (state.attributes.length >= MAX_ATTRS) return;
       state.attributes.push('Axis ' + (state.attributes.length + 1));
       state.series.forEach(function (s) { s.values.push(Math.round(state.max * 0.5)); });
       renderAxes(); drawChart(); save();
@@ -863,9 +938,9 @@
     });
 
     $('save-csv').addEventListener('click', function () {
-      var head = ['Axis'].concat(state.series.map(function (s) { return s.name; })).join(',');
+      var head = ['Axis'].concat(state.series.map(function (s) { return s.name; })).map(csvCell).join(',');
       var rows = state.attributes.map(function (a, i) {
-        return [a].concat(state.series.map(function (s) { return s.values[i]; })).join(',');
+        return [a].concat(state.series.map(function (s) { return s.values[i]; })).map(csvCell).join(',');
       });
       Exporter.saveText([head].concat(rows).join('\n'),
         Exporter.slug(state.title) + '.csv', 'text/csv');
@@ -899,6 +974,16 @@
       renderAxes(); drawChart(); save();
     });
 
+    $('reset-all').addEventListener('click', function () {
+      if (!confirm('Discard this chart and return every setting to its default?')) return;
+      try { localStorage.removeItem(STATE_KEY); } catch (e) {}
+      state = defaults();
+      normalise();
+      syncInputs(); renderPalettes(); renderSeries(); renderAxes();
+      refreshFormatHint(); drawChart(); save();
+      status($('upload-status'), 'Everything reset to defaults');
+    });
+
     $('download').addEventListener('click', download);
 
     $('copy-png').addEventListener('click', function () {
@@ -930,7 +1015,6 @@
     if (mq.addEventListener) mq.addEventListener('change', onScheme);
     else if (mq.addListener) mq.addListener(onScheme);
 
-    window.addEventListener('resize', drawChart);
   }
 
   /* ---------- start ---------- */
