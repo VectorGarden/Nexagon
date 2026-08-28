@@ -23,6 +23,28 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Full history. The stamp step below asks when page content last
+          # changed; on a shallow clone the grafted root commit looks like it
+          # adds every file, so any pathspec matches HEAD and the stamp would
+          # silently become the deploy date instead.
+          fetch-depth: 0
+
+      # sitemap.xml carries a fallback date in the repository. Re-stamp it here
+      # so the served copy tracks content without a bot commit on every deploy.
+      - name: Stamp sitemap lastmod
+        run: |
+          set -euo pipefail
+          date=$(git log -1 --format=%cs -- index.html css js assets)
+          if [ -z "$date" ]; then
+            echo "::warning::No content date found; keeping the committed lastmod"
+            exit 0
+          fi
+          sed -i "s|<lastmod>[^<]*</lastmod>|<lastmod>$date</lastmod>|" sitemap.xml
+          grep -q "<lastmod>$date</lastmod>" sitemap.xml \
+            || { echo "::error::sitemap.xml lastmod was not rewritten"; exit 1; }
+          echo "sitemap lastmod stamped $date"
+
       - uses: actions/configure-pages@v5
       # No build step — the repository root is the site.
       # The action excludes .git and .github from the artifact itself.
